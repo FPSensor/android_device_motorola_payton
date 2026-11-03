@@ -40,7 +40,10 @@ TARGET_SCREEN_DENSITY := 420
 
 # Kernel
 BOARD_KERNEL_CMDLINE += androidboot.boot_devices=soc/c0c4000.sdhci
-TARGET_KERNEL_CONFIG := lineageos_payton_defconfig
+TARGET_KERNEL_CONFIG := \
+    vendor/sdm660-perf_defconfig \
+    vendor/ext_config/moto-sdm660.config \
+    vendor/ext_config/payton.config
 
 # HIDL
 DEVICE_MANIFEST_FILE += $(DEVICE_PATH)/payton_manifest.xml
