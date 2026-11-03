@@ -23,10 +23,10 @@ from extract_utils.main import (
 
 namespace_imports = [
     'device/motorola/payton',
-    'device/motorola/msm8998-common',
+    'device/motorola/sdm660-common',
     'hardware/qcom-caf/msm8998',
     'hardware/qcom-caf/wlan',
-    'vendor/motorola/msm8998-common',
+    'vendor/motorola/sdm660-common',
     'vendor/qcom/opensource/dataservices',
 ]
 
@@ -67,5 +67,5 @@ module = ExtractUtilsModule(
 )
 
 if __name__ == '__main__':
-    utils = ExtractUtils.device_with_common(module, 'msm8998-common', module.vendor)
+    utils = ExtractUtils.device_with_common(module, 'sdm660-common', module.vendor)
     utils.run()
