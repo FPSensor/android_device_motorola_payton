@@ -22,7 +22,7 @@ vendor.voice.path.for.pcm.voip=false
 bluetooth.device.default_name=Moto X4
 
 # Display
-ro.hardware.vulkan=sdm660
+ro.hardware.vulkan=adreno
 
 # FM
 ro.vendor.fm.use_audio_session=true
