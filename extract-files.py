@@ -24,7 +24,10 @@ from extract_utils.main import (
 namespace_imports = [
     'device/motorola/payton',
     'device/motorola/sdm660-common',
-    'hardware/qcom-caf/msm8998',
+    # Kernel 4.19 (QSSI) uses the sdm660 HALs
+    'hardware/qcom-caf/sdm660',
+    'vendor/qcom/opensource/commonsys/display',
+    'vendor/qcom/opensource/display',
     'hardware/qcom-caf/wlan',
     'vendor/motorola/sdm660-common',
     'vendor/qcom/opensource/dataservices',
