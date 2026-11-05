@@ -44,3 +44,7 @@ ro.vendor.sensors.sta_detect=true
 
 # SOC
 ro.soc.model=SDM660
+
+# Display (kernel 4.19 SDM, as on sdm660 lavender)
+debug.sdm.support_writeback=0
+vendor.display.disable_skip_validate=1
