@@ -31,6 +31,11 @@ on post-fs
     symlink /dev/block/mmcblk0p64 /dev/block/bootdevice/by-name/vendor_b
     symlink /dev/block/mmcblk0p63 /dev/block/bootdevice/by-name/vendor_a
 
+    # The FPC HAL looks for the sensor under /sys/devices/soc, which moved to
+    # /sys/devices/platform/soc on kernel 4.19. Its path is patched to this
+    # link (extract-files.py).
+    symlink /sys/devices/platform/soc /dev/fpc_soc
+
 on post-fs-data
     mkdir /data/.fps 0770 system system
 
