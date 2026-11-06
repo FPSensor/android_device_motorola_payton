@@ -55,5 +55,12 @@ on post-fs-data
     chmod 0640 /data/vendor/pstore/dmesg-ramoops-0
     chmod 0640 /data/vendor/pstore/dmesg-ramoops-1
 
+# I/O scheduler: BFQ keeps foreground reads responsive while apps install
+# or update in the background. eMMC and SD go through blk-mq on 4.19,
+# where the default is mq-deadline.
+on boot
+    write /sys/block/mmcblk0/queue/scheduler bfq
+    write /sys/block/mmcblk1/queue/scheduler bfq
+
 on moto-charger
     setprop ro.board.platform sdm660
