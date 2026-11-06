@@ -48,3 +48,11 @@ ro.soc.model=SDM660
 # Display (kernel 4.19 SDM, as on sdm660 lavender)
 debug.sdm.support_writeback=0
 vendor.display.disable_skip_validate=1
+
+# USB gadget HAL
+vendor.usb.controller=a800000.dwc3
+# Let the gadget HAL own the gadget (init.qcom.usb.rc then sets
+# sys.usb.configfs=2 and stays out), with MTP/PTP over FunctionFS.
+vendor.usb.use_gadget_hal=1
+vendor.usb.use_ffs_mtp=1
+sys.usb.mtp.batchcancel=1
