@@ -45,6 +45,21 @@ TARGET_KERNEL_CONFIG := \
     vendor/ext_config/moto-sdm660.config \
     vendor/ext_config/payton.config
 
+# Early kernel logs on the debug UART (BLSP1 UART2, gpio4/5, 115200 8N1).
+# Off by default: a serial console slows down boot.
+ifeq ($(TARGET_PAYTON_UART_LOG),true)
+# The UART driver node is disabled in the DT (its console clock vote blocks
+# XO shutdown), so keep the early console alive for the whole boot instead.
+BOARD_KERNEL_CMDLINE += earlycon=msm_serial_dm,0xc170000 keep_bootcon
+else
+# Without any console= the kernel enables the first tty console that
+# registers, which is the debug UART. console=null leaves init without a
+# console and crashes it, so keep the UART but only print critical
+# messages on consoles: at 115200 baud a full boot log storm stalls
+# printk with interrupts off. The log buffer still keeps everything.
+BOARD_KERNEL_CMDLINE += loglevel=3
+endif
+
 # HIDL
 DEVICE_MANIFEST_FILE += $(DEVICE_PATH)/payton_manifest.xml
 
