@@ -98,7 +98,7 @@ PRODUCT_PACKAGES += \
 
 # Lineage Touch HAL
 PRODUCT_PACKAGES += \
-    vendor.lineage.touch@1.0-service.sdm660
+    vendor.lineage.touch-service.sdm660
 
 # LiveDisplay
 $(call soong_config_set,livedisplay_sdm,enable_dm,false)
