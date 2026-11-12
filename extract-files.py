@@ -37,6 +37,19 @@ lib_fixups: lib_fixups_user_type = {
     **lib_fixups,
 }
 
+# The camera HAL links android.frameworks.displayservice@1.0, which is gone:
+# point it at the lineage.frameworks copy, and resolve the HIDL methods that
+# library does not export to IEventCallback::ping, as ginkgo does.
+_displayservice_ping = (
+    b'_ZN7lineage10frameworks14displayservice4V1_014IEventCallback4pingEv'
+)
+_displayservice_unresolved = (
+    rb'_ZN7lineage10frameworks14displayservice4V1_01[45]I[A-Za-z0-9_]*'
+    rb'(?:linkToDeath|unlinkToDeath|getDebugInfo|getHashChain|'
+    rb'interfaceChain|interfaceDescriptor|5debug|registerForNotifications)'
+    rb'[A-Za-z0-9_]*'
+)
+
 blob_fixups: blob_fixups_user_type = {
     'vendor/bin/hw/android.hardware.biometrics.fingerprint@2.1-fpcservice': blob_fixup()
         .replace_needed('com.fingerprints.extension@1.0_vendor.so', 'com.fingerprints.extension@1.0.so')
@@ -51,7 +64,15 @@ blob_fixups: blob_fixups_user_type = {
     # feeding a debug log and the ldr feeding the mmap length.
     'vendor/lib/hw/camera.sdm660.so': blob_fixup()
         .binary_regex_replace(b'\xca\x68\xd1\xe9\x0d\x31\x04\x91', b'\xca\x68\xd1\xe9\x12\x31\x04\x91')
-        .binary_regex_replace(b'\x4f\xf0\x00\x08\x40\x6b\xc8\x60', b'\x4f\xf0\x00\x08\x80\x6c\xc8\x60'),
+        .binary_regex_replace(b'\x4f\xf0\x00\x08\x40\x6b\xc8\x60', b'\x4f\xf0\x00\x08\x80\x6c\xc8\x60')
+        .replace_needed('android.frameworks.displayservice@1.0.so',
+                        'lineage.frameworks.displayservice@1.0.so')
+        .binary_regex_replace(
+            b'7android10frameworks14displayservice',
+            b'7lineage10frameworks14displayservice')
+        .binary_regex_replace(
+            _displayservice_unresolved,
+            lambda m: _displayservice_ping.ljust(len(m.group(0)), b'\x00')),
     'vendor/etc/init/android.hardware.biometrics.fingerprint@2.1-service-payton.rc': blob_fixup()
         .regex_replace('system input', 'system uhid input'),
     (
