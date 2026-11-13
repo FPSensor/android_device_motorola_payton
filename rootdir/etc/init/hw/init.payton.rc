@@ -62,12 +62,11 @@ on boot
     write /sys/block/mmcblk0/queue/scheduler bfq
     write /sys/block/mmcblk1/queue/scheduler bfq
 
-# uclamp (kernel 4.19 has no schedtune). Values from the sdm660 lavender
-# tuning: everything boosted while booting, then background work capped
-# so it stays on the lower frequencies and top-app tasks prefer idle CPUs.
+# uclamp, which the kernel uses instead of SchedTune. Values from the
+# sdm660 lavender tuning: everything boosted while booting, then background
+# work capped so it stays on the lower frequencies and top-app tasks prefer
+# idle CPUs.
 on init
-    # WALT colocation of the top-app threads (was schedtune.colocate)
-    write /dev/cpuctl/top-app/cpu.uclamp.colocate 1
     write /dev/cpuctl/background/cpu.uclamp.min 100
     write /dev/cpuctl/camera-daemon/cpu.uclamp.min 100
     write /dev/cpuctl/dex2oat/cpu.uclamp.min 100
