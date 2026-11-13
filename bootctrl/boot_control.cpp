@@ -37,7 +37,6 @@ extern "C" {
 #include <errno.h>
 #define LOG_TAG "bootcontrolhal"
 #include <log/log.h>
-#include <hardware/boot_control.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -48,6 +47,7 @@ extern "C" {
 #include <limits.h>
 #include <cutils/properties.h>
 #include "gpt-utils.h"
+#include "boot_control.h"
 
 #define BOOTDEV_DIR "/dev/block/bootdevice/by-name"
 #define BOOT_IMG_PTN_NAME "boot_"
@@ -82,15 +82,6 @@ enum part_stat_result_type {
 	PARTITION_MISSING,
 	PARTITION_STAT_ERROR,
 };
-
-void boot_control_init(struct boot_control_module *module)
-{
-	if (!module) {
-		ALOGE("Invalid argument passed to %s", __func__);
-		return;
-	}
-	return;
-}
 
 //Get the value of one of the attribute fields for a partition.
 static int get_partition_attribute(char *partname,
@@ -266,15 +257,11 @@ static int update_slot_attribute(const char *slot,
 	return 0;
 }
 
-unsigned get_number_slots(struct boot_control_module *module)
+unsigned get_number_slots(void)
 {
 	struct dirent *de = NULL;
 	DIR *dir_bootdev = NULL;
 	unsigned slot_count = 0;
-	if (!module) {
-		ALOGE("%s: Invalid argument", __func__);
-		return 0;
-	}
 	dir_bootdev = opendir(BOOTDEV_DIR);
 	if (!dir_bootdev) {
 		ALOGE("%s: Failed to open bootdev dir (%s)",
@@ -295,7 +282,7 @@ unsigned get_number_slots(struct boot_control_module *module)
 	return slot_count;
 }
 
-unsigned get_current_slot(struct boot_control_module *module)
+unsigned get_current_slot(void)
 {
 	//The HAL spec requires that we return a number between
 	//0 to num_slots - 1. If something went wrong just return
@@ -304,11 +291,7 @@ unsigned get_current_slot(struct boot_control_module *module)
 	uint32_t num_slots = 0;
 	char bootSlotProp[PROPERTY_VALUE_MAX] = {'\0'};
 	unsigned i = 0;
-	if (!module) {
-		ALOGE("%s: Invalid argument", __func__);
-		return 0;
-	}
-	num_slots = get_number_slots(module);
+	num_slots = get_number_slots();
 	if (num_slots <= 1) {
 		//Slot 0 is the only slot around.
 		return 0;
@@ -330,12 +313,9 @@ unsigned get_current_slot(struct boot_control_module *module)
 	return 0;
 }
 
-static int boot_control_check_slot_sanity(struct boot_control_module *module,
-		unsigned slot)
+static int boot_control_check_slot_sanity(unsigned slot)
 {
-	if (!module)
-		return -1;
-	uint32_t num_slots = get_number_slots(module);
+	uint32_t num_slots = get_number_slots();
 	if ((num_slots < 1) || (slot > num_slots - 1)) {
 		ALOGE("Invalid slot number");
 		return -1;
@@ -344,29 +324,20 @@ static int boot_control_check_slot_sanity(struct boot_control_module *module,
 
 }
 
-int mark_boot_successful(struct boot_control_module *module)
+int mark_boot_successful(void)
 {
-	unsigned cur_slot = 0;
-	int retval = 0;
-	if (!module) {
-		ALOGE("%s: Invalid argument", __func__);
-		retval = -1;
+	unsigned cur_slot = get_current_slot();
+	if (update_slot_attribute(slot_suffix_arr[cur_slot],
+				   ATTR_BOOT_SUCCESSFUL)) {
+		ALOGE("%s: Failed to mark boot successful", __func__);
+		return -1;
 	}
-	if (retval == 0) {
-		cur_slot = get_current_slot(module);
-		if (update_slot_attribute(slot_suffix_arr[cur_slot],
-					   ATTR_BOOT_SUCCESSFUL)) {
-		    retval = -1;
-		}
-	}
-	if (retval == -1)
-	    ALOGE("%s: Failed to mark boot successful", __func__);
-	return retval;
+	return 0;
 }
 
-const char *get_suffix(struct boot_control_module *module, unsigned slot)
+const char *get_suffix(unsigned slot)
 {
-	if (boot_control_check_slot_sanity(module, slot) != 0)
+	if (boot_control_check_slot_sanity(slot) != 0)
 		return NULL;
 	else
 		return slot_suffix_arr[slot];
@@ -539,17 +510,9 @@ static int boot_ctl_set_active_slot_for_partitions(vector<string> part_list,
 	return 0;
 }
 
-unsigned get_active_boot_slot(struct boot_control_module *module)
+unsigned get_active_boot_slot(void)
 {
-	if (!module) {
-		ALOGE("%s: Invalid argument", __func__);
-		// The HAL spec requires that we return a number between
-		// 0 to num_slots - 1. Since something went wrong here we
-		// are just going to return the default slot.
-		return 0;
-	}
-
-	uint32_t num_slots = get_number_slots(module);
+	uint32_t num_slots = get_number_slots();
 	if (num_slots <= 1) {
 		//Slot 0 is the only slot around.
 		return 0;
@@ -568,7 +531,7 @@ unsigned get_active_boot_slot(struct boot_control_module *module)
 	return 0;
 }
 
-int set_active_boot_slot(struct boot_control_module *module, unsigned slot)
+int set_active_boot_slot(unsigned slot)
 {
 	map<string, vector<string>> ptn_map;
 	vector<string> ptn_vec;
@@ -578,7 +541,7 @@ int set_active_boot_slot(struct boot_control_module *module, unsigned slot)
 	int is_ufs = gpt_utils_is_ufs_device();
 	map<string, vector<string>>::iterator map_iter;
 
-	if (boot_control_check_slot_sanity(module, slot)) {
+	if (boot_control_check_slot_sanity(slot)) {
 		ALOGE("%s: Bad arguments", __func__);
 		return -1;
 	}
@@ -639,10 +602,10 @@ int set_active_boot_slot(struct boot_control_module *module, unsigned slot)
 	return 0;
 }
 
-int set_slot_as_unbootable(struct boot_control_module *module, unsigned slot)
+int set_slot_as_unbootable(unsigned slot)
 {
 	int retval = 0;
-	if (boot_control_check_slot_sanity(module, slot) != 0) {
+	if (boot_control_check_slot_sanity(slot) != 0) {
 		ALOGE("%s: Argument check failed", __func__);
 		retval = -1;
 	}
@@ -655,12 +618,12 @@ int set_slot_as_unbootable(struct boot_control_module *module, unsigned slot)
 	return retval;
 }
 
-int is_slot_bootable(struct boot_control_module *module, unsigned slot)
+int is_slot_bootable(unsigned slot)
 {
 	int attr = 0;
 	char bootPartition[MAX_GPT_NAME_SIZE + 1] = {0};
 
-	if (boot_control_check_slot_sanity(module, slot) != 0) {
+	if (boot_control_check_slot_sanity(slot) != 0) {
 		ALOGE("%s: Argument check failed", __func__);
 		return -1;
 	}
@@ -673,12 +636,12 @@ int is_slot_bootable(struct boot_control_module *module, unsigned slot)
 	return -1;
 }
 
-int is_slot_marked_successful(struct boot_control_module *module, unsigned slot)
+int is_slot_marked_successful(unsigned slot)
 {
 	int attr = 0;
 	char bootPartition[MAX_GPT_NAME_SIZE + 1] = {0};
 
-	if (boot_control_check_slot_sanity(module, slot) != 0) {
+	if (boot_control_check_slot_sanity(slot) != 0) {
 		ALOGE("%s: Argument check failed", __func__);
 		return -1;
 	}
@@ -691,31 +654,6 @@ int is_slot_marked_successful(struct boot_control_module *module, unsigned slot)
 	return -1;
 }
 
-static hw_module_methods_t boot_control_module_methods = {
-	.open = NULL,
-};
-
-boot_control_module_t HAL_MODULE_INFO_SYM = {
-	.common = {
-		.tag = HARDWARE_MODULE_TAG,
-		.module_api_version = 1,
-		.hal_api_version = 0,
-		.id = BOOT_CONTROL_HARDWARE_MODULE_ID,
-		.name = "Boot control HAL",
-		.author = "Code Aurora Forum",
-		.methods = &boot_control_module_methods,
-	},
-	.init = boot_control_init,
-	.getNumberSlots = get_number_slots,
-	.getCurrentSlot = get_current_slot,
-	.markBootSuccessful = mark_boot_successful,
-	.getActiveBootSlot = get_active_boot_slot,
-	.setActiveBootSlot = set_active_boot_slot,
-	.setSlotAsUnbootable = set_slot_as_unbootable,
-	.isSlotBootable = is_slot_bootable,
-	.getSuffix = get_suffix,
-	.isSlotMarkedSuccessful = is_slot_marked_successful,
-};
 #ifdef __cplusplus
 }
 #endif

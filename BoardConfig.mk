@@ -38,6 +38,9 @@ TARGET_OTA_ASSERT_DEVICE := payton
 # Display
 TARGET_SCREEN_DENSITY := 420
 
+# SELinux
+BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/vendor
+
 # Kernel
 BOARD_KERNEL_CMDLINE += androidboot.boot_devices=soc/c0c4000.sdhci
 TARGET_KERNEL_CONFIG := \

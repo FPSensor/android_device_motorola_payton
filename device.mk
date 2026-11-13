@@ -51,11 +51,8 @@ TARGET_SCREEN_WIDTH := 1080
 
 # Boot control HAL
 PRODUCT_PACKAGES += \
-    android.hardware.boot@1.0-impl \
-    android.hardware.boot@1.0-service \
-    android.hardware.boot@1.0-impl.recovery \
-    bootctrl.qcom \
-    bootctrl.qcom.recovery
+    android.hardware.boot-service.payton \
+    android.hardware.boot-service.payton.recovery
 
 # Fingerprint
 PRODUCT_PACKAGES += \

@@ -1,0 +1,6 @@
+service vendor.boot-hal /system/bin/hw/android.hardware.boot-service.payton.recovery
+    interface aidl android.hardware.boot.IBootControl/default
+    class hal
+    user root
+    group root
+    seclabel u:r:hal_bootctl_default:s0
