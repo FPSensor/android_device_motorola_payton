@@ -38,6 +38,9 @@ TARGET_OTA_ASSERT_DEVICE := payton
 # Display
 TARGET_SCREEN_DENSITY := 420
 
+# Graphics
+TARGET_USES_VULKAN := true
+
 # SELinux
 BOARD_VENDOR_SEPOLICY_DIRS += $(DEVICE_PATH)/sepolicy/vendor
 

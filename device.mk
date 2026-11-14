@@ -17,6 +17,10 @@
 # Vendor blobs
 $(call inherit-product, vendor/motorola/payton/payton-vendor.mk)
 
+# Power
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/configs/powerhint.json:$(TARGET_COPY_OUT_VENDOR)/etc/powerhint.json
+
 # Overlays
 DEVICE_PACKAGE_OVERLAYS += \
     $(LOCAL_PATH)/overlay \

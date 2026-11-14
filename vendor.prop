@@ -23,6 +23,7 @@ bluetooth.device.default_name=Moto X4
 
 # Display
 ro.hardware.vulkan=adreno
+debug.renderengine.backend=skiavkthreaded
 
 # FM
 ro.vendor.fm.use_audio_session=true
